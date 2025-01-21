@@ -3,14 +3,6 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 
-// // File Uploading
-// import multer from 'multer';
-
-// import { cloudinary, storage } from "../lib/cloudinary.js";
-
-// const upload = multer({ dest: 'uploads/' });    //Upload -> destination to save a file locally 
-// const upload = multer({ storage });        // Now file are getting uploaded to Cloudinary Storage
-
 
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -105,28 +97,72 @@ export const logout = (req, res) => {
   }
 };
 
+// export const updateProfile = async (req, res) => {
+//   try {
+//     const { profilePic } = req.body;
+//     const userId = req.user._id;
+
+//     if (!profilePic) {
+//       return res.status(400).json({ message: "Profile pic is required" });
+//     }
+
+//     const uploadResponse = await cloudinary.uploader.upload(profilePic);
+//     const updatedUser = await User.findByIdAndUpdate(
+//       userId,
+//       { profilePic: uploadResponse.secure_url },
+//       { new: true }                                           //return new updated user object
+//     );
+
+//     res.status(200).json(updatedUser);
+//   } catch (error) {
+//     console.log("error in update profile:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
     const userId = req.user._id;
 
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+    if (!req.body.profilePic) {
+      return res.status(400).json({ message: "Profile picture is required" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    // Fetch the user's name from the database
+    const user = await User.findById(userId);
+    // console.log(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a unique file name using the user's name and ID
+    const userName = user.fullName.replace(/\s+/g, "_").toLowerCase();
+    const fileName = `${userName}_${userId}_profilePic`;
+
+    // Upload the image to Cloudinary with a custom file name and folder
+    const uploadResponse = await cloudinary.uploader.upload(req.body.profilePic, {
+      folder: "chatty-dev/profilePic", // Folder path
+      public_id: fileName,            // File name
+    });
+
+    // Update the user's profile picture URL in the database
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePic: uploadResponse.secure_url },
-      { new: true }                                           //return new updated user object
+      { profilePic: uploadResponse.secure_url }, // Save Cloudinary's URL to the database
+      { new: true }
     );
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error in update profile:", error.message);
+    res.status(500).json({
+      message: process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : error.message,
+    });
   }
 };
+
 
 export const checkAuth = (req, res) => {
   try {

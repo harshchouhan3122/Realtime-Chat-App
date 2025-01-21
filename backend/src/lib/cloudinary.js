@@ -1,8 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-
 import { config } from "dotenv";
-
-// import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 config();
 
@@ -12,14 +9,4 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Define Storage
-// const storage = new CloudinaryStorage({
-//   cloudinary: cloudinary,
-//   params: {
-//     folder: 'chatty-dev',
-//     allowedFormatsf: ["png", "jpeg", "jpg"]
-//   },
-// });
-
-export default cloudinary;
-// module.exports = {cloudinary , storage};
+export default cloudinary ;

@@ -21,7 +21,7 @@ export function getReceiverSocketId(userId) {
 const userSocketMap = {}; // {userId: socketId} -> userId from db and socketId is generating everytime whenever an connection is establish
 
 io.on("connection", (socket) => {
-  console.log("A user connected", socket.id);
+  // console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId;   // socket: Represents the connection object created when a client connects to the WebSocket server.
   if (userId) userSocketMap[userId] = socket.id;
@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
+    // console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];           // remove from the array
     io.emit("getOnlineUsers", Object.keys(userSocketMap));      // send/ emit an updated object of online users
   });
